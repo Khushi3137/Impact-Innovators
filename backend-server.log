@@ -1,0 +1,283 @@
+
+> student-assistant-backend@1.0.0 start
+> node server.js
+
+Scheduler initialized with scheduled jobs
+Server running on port 5001
+Environment: development
+MongoDB connected successfully
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:46:46"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:47:52"}
+Client connected: uHEpL0wwpkBTu9GpAAAB
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:47:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:47:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:47:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:47:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:23"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:23"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:23"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:24"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:24"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:37"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:38"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:38"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:38"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:38"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:48"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:48"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:48"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:49"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:49"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:51"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:52"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:52"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:52"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:48:53"}
+Client disconnected: uHEpL0wwpkBTu9GpAAAB
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:50:06"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:52:13"}
+Client connected: LFNd7jUr1qw9iZt9AAAD
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:53:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:53:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:53:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:53:05"}
+Client disconnected: LFNd7jUr1qw9iZt9AAAD
+Client connected: edeO2-JYFxaWGr5DAAAF
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:53:21"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:53:21"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:53:21"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-27 23:53:22"}
+Updated progress stats for all users
+Client disconnected: edeO2-JYFxaWGr5DAAAF
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:19"}
+Client connected: 0JBW-yzZcieiARYcAAAH
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:20"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:20"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:20"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:20"}
+Client disconnected: 0JBW-yzZcieiARYcAAAH
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:01:24"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:05"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:05"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:05"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:05"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:05"}
+Client connected: HSHvZoPnxhSQfqdRAAAJ
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:07"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:07"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:08"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:08"}
+Client disconnected: HSHvZoPnxhSQfqdRAAAJ
+Client connected: MTOfEYsFNidgw8U4AAAL
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:13"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:13"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:13"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:02:14"}
+Client disconnected: MTOfEYsFNidgw8U4AAAL
+Client connected: IpHfZjYA4EDHnbRXAAAN
+Client disconnected: IpHfZjYA4EDHnbRXAAAN
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:03:14"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:03:14"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:03:14"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:03:15"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:03"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:13"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:22"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:22"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:22"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:22"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:22"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:42"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:42"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:42"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:42"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:42"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:51"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:51"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:51"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:51"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:51"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:52"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:52"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:52"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:52"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:52"}
+Client connected: 9GE416gwcBDbYf3pAAAP
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:07:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:08:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:08:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:08:33"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:08:33"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:08:33"}
+Client disconnected: 9GE416gwcBDbYf3pAAAP
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:08"}
+Client connected: OR_cFwk5lnt8ZWAhAAAR
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:09"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:09"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:09"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:09"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:18"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:18"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:18"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:18"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:18"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:20"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:20"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:20"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:20"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:20"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:31"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:32"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:34"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:34"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:34"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:34"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:34"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:36"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:36"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:36"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:36"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:36"}
+Client disconnected: OR_cFwk5lnt8ZWAhAAAR
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:09:53"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:10"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:10"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:10"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:10"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:10"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:14"}
+Client connected: 9Z4ZZRSV0Y154GaoAAAT
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:18"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:18"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:18"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:10:19"}
+Client disconnected: 9Z4ZZRSV0Y154GaoAAAT
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:12:29"}
+Client connected: -INEqkgbnCTpsovXAAAV
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:12:29"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:12:29"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:12:30"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:12:30"}
+Client disconnected: -INEqkgbnCTpsovXAAAV
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:13:28"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:13:28"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:13:28"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:13:28"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:13:28"}
+Client connected: kqI2lkY-7JznltW_AAAX
+Client disconnected: kqI2lkY-7JznltW_AAAX
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:13:49"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:13:58"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:15:39"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:15:40"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:16:17"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:16:56"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 00:21:50"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 08:47:02"}
+Client connected: kuYE7kgfEm7wPo7mAAAZ
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 08:47:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 08:47:03"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 08:47:03"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 08:47:03"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 08:47:07"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 08:47:25"}
+Client disconnected: kuYE7kgfEm7wPo7mAAAZ
+Client connected: 6XW4KXQ6MOFd104AAAAb
+Client disconnected: 6XW4KXQ6MOFd104AAAAb
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:00:40"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:01"}
+Client connected: mO46lLkb1KLb4zcEAAAd
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:01"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:01"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:02"}
+Client disconnected: mO46lLkb1KLb4zcEAAAd
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:03"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:03"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:04"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:08"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:08"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:08"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:08"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:08"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:08"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:13"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:13"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:13"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:13"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:13"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 09:09:13"}
+Updated progress stats for all users
+Updated progress stats for all users
+Updated progress stats for all users
+Updated progress stats for all users
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:58:01"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:58:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:58:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:58:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:58:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:58:03"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:58:03"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:59:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:59:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:59:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:59:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:59:02"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 18:59:02"}
+Updated progress stats for all users
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+[32minfo[39m: [object Object] {"timestamp":"2026-08-28 20:10:12"}
+Updated progress stats for all users
