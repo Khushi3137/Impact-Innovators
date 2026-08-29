@@ -2,7 +2,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { OAuth2Client } = require('google-auth-library');
-const { sendVerificationEmail } = require('../utils/emailService');
+
 const generateToken = (userId) => {
   return jwt.sign(
     { userId },
@@ -46,7 +46,7 @@ exports.register = async (req, res) => {
 
     // Generate token
     const token = generateToken(user._id);
-await sendVerificationEmail(user, token);
+
     res.status(201).json({
       success: true,
       token,

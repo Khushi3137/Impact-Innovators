@@ -1,18 +1,46 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const { OAuth2Client } = require('google-auth-library');
 const { sendVerificationEmail } = require('../utils/emailService');
+
+const getJwtSecret = () => {
+  if (process.env.JWT_SECRET) {
+    return process.env.JWT_SECRET;
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('JWT_SECRET is not configured. Using an insecure development-only fallback.');
+    return 'development-only-jwt-secret';
+  }
+
+  throw new Error('JWT_SECRET is required in production');
+};
+
 const generateToken = (userId) => {
   return jwt.sign(
     { userId },
-    process.env.JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: '7d' }
   );
 };
 
+const isDatabaseConnected = () => mongoose.connection.readyState === 1;
+
+const sendDatabaseUnavailable = (res) => {
+  return res.status(503).json({
+    success: false,
+    message: 'Database is not connected. Set MONGODB_URI in backend/.env and restart the backend server.'
+  });
+};
+
 exports.register = async (req, res) => {
   try {
+    if (!isDatabaseConnected()) {
+      return sendDatabaseUnavailable(res);
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -46,7 +74,8 @@ exports.register = async (req, res) => {
 
     // Generate token
     const token = generateToken(user._id);
-await sendVerificationEmail(user, token);
+    await sendVerificationEmail(user, token);
+
     res.status(201).json({
       success: true,
       token,
@@ -71,6 +100,10 @@ await sendVerificationEmail(user, token);
 
 exports.login = async (req, res) => {
   try {
+    if (!isDatabaseConnected()) {
+      return sendDatabaseUnavailable(res);
+    }
+
     const { email, password } = req.body;
 
     // Find user
@@ -117,6 +150,10 @@ exports.login = async (req, res) => {
 
 exports.googleAuth = async (req, res) => {
   try {
+    if (!isDatabaseConnected()) {
+      return sendDatabaseUnavailable(res);
+    }
+
     const { tokenId } = req.body;
     
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -180,9 +217,12 @@ exports.googleAuth = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
+    if (!isDatabaseConnected()) {
+      return sendDatabaseUnavailable(res);
+    }
+
     const user = await User.findById(req.userId)
-      .select('-password -googleTokens')
-      .populate('studyPreferences');
+      .select('-password -googleTokens');
     
     res.json({
       success: true,
@@ -199,6 +239,10 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
+    if (!isDatabaseConnected()) {
+      return sendDatabaseUnavailable(res);
+    }
+
     const updates = req.body;
     
     // Remove fields that shouldn't be updated
@@ -228,6 +272,10 @@ exports.updateProfile = async (req, res) => {
 
 exports.updateStudyPreferences = async (req, res) => {
   try {
+    if (!isDatabaseConnected()) {
+      return sendDatabaseUnavailable(res);
+    }
+
     const { dailyGoalHours, preferredSubjects, studyTimes } = req.body;
     
     const user = await User.findByIdAndUpdate(

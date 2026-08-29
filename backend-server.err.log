@@ -1,0 +1,121 @@
+Error sending group invite: Error: connect ECONNREFUSED 127.0.0.1:587
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+  errno: -4078,
+  code: 'ESOCKET',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 587,
+  command: 'CONN'
+}
+Get groups error: MongoServerSelectionError: getaddrinfo ENOTFOUND ac-jm5woaa-shard-00-00.kffefs6.mongodb.net
+    at Timeout._onTimeout (C:\Users\Purvi\Downloads\Impact-Innovators-main\Impact-Innovators-main\backend\node_modules\mongoose\node_modules\mongodb\lib\sdam\topology.js:278:38)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  reason: TopologyDescription {
+    type: 'ReplicaSetNoPrimary',
+    servers: Map(3) {
+      'ac-jm5woaa-shard-00-00.kffefs6.mongodb.net:27017' => [ServerDescription],
+      'ac-jm5woaa-shard-00-01.kffefs6.mongodb.net:27017' => [ServerDescription],
+      'ac-jm5woaa-shard-00-02.kffefs6.mongodb.net:27017' => [ServerDescription]
+    },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: 'atlas-ne8ubt-shard-0',
+    maxElectionId: new ObjectId("7fffffff0000000000000253"),
+    maxSetVersion: 248,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  },
+  code: undefined,
+  Symbol(errorLabels): Set(0) {}
+}
+Get user groups error: MongoServerSelectionError: getaddrinfo ENOTFOUND ac-jm5woaa-shard-00-00.kffefs6.mongodb.net
+    at Timeout._onTimeout (C:\Users\Purvi\Downloads\Impact-Innovators-main\Impact-Innovators-main\backend\node_modules\mongoose\node_modules\mongodb\lib\sdam\topology.js:278:38)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  reason: TopologyDescription {
+    type: 'ReplicaSetNoPrimary',
+    servers: Map(3) {
+      'ac-jm5woaa-shard-00-00.kffefs6.mongodb.net:27017' => [ServerDescription],
+      'ac-jm5woaa-shard-00-01.kffefs6.mongodb.net:27017' => [ServerDescription],
+      'ac-jm5woaa-shard-00-02.kffefs6.mongodb.net:27017' => [ServerDescription]
+    },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: 'atlas-ne8ubt-shard-0',
+    maxElectionId: new ObjectId("7fffffff0000000000000253"),
+    maxSetVersion: 248,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  },
+  code: undefined,
+  Symbol(errorLabels): Set(0) {}
+}
+Get pending invitations error: MongoServerSelectionError: getaddrinfo ENOTFOUND ac-jm5woaa-shard-00-00.kffefs6.mongodb.net
+    at Timeout._onTimeout (C:\Users\Purvi\Downloads\Impact-Innovators-main\Impact-Innovators-main\backend\node_modules\mongoose\node_modules\mongodb\lib\sdam\topology.js:278:38)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  reason: TopologyDescription {
+    type: 'ReplicaSetNoPrimary',
+    servers: Map(3) {
+      'ac-jm5woaa-shard-00-00.kffefs6.mongodb.net:27017' => [ServerDescription],
+      'ac-jm5woaa-shard-00-01.kffefs6.mongodb.net:27017' => [ServerDescription],
+      'ac-jm5woaa-shard-00-02.kffefs6.mongodb.net:27017' => [ServerDescription]
+    },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: 'atlas-ne8ubt-shard-0',
+    maxElectionId: new ObjectId("7fffffff0000000000000253"),
+    maxSetVersion: 248,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  },
+  code: undefined,
+  Symbol(errorLabels): Set(0) {}
+}
+Get pending join requests error: MongoServerSelectionError: getaddrinfo ENOTFOUND ac-jm5woaa-shard-00-00.kffefs6.mongodb.net
+    at Timeout._onTimeout (C:\Users\Purvi\Downloads\Impact-Innovators-main\Impact-Innovators-main\backend\node_modules\mongoose\node_modules\mongodb\lib\sdam\topology.js:278:38)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  reason: TopologyDescription {
+    type: 'ReplicaSetNoPrimary',
+    servers: Map(3) {
+      'ac-jm5woaa-shard-00-00.kffefs6.mongodb.net:27017' => [ServerDescription],
+      'ac-jm5woaa-shard-00-01.kffefs6.mongodb.net:27017' => [ServerDescription],
+      'ac-jm5woaa-shard-00-02.kffefs6.mongodb.net:27017' => [ServerDescription]
+    },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: 'atlas-ne8ubt-shard-0',
+    maxElectionId: new ObjectId("7fffffff0000000000000253"),
+    maxSetVersion: 248,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  },
+  code: undefined,
+  Symbol(errorLabels): Set(0) {}
+}
+Error sending group invite: Error: connect ECONNREFUSED 127.0.0.1:587
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+  errno: -4078,
+  code: 'ESOCKET',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 587,
+  command: 'CONN'
+}
+Error checking due tasks: PoolClearedError [MongoPoolClearedError]: Connection pool for ac-jm5woaa-shard-00-01.kffefs6.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.243.55:27017 timed out"
+    at C:\Users\Purvi\Downloads\Impact-Innovators-main\Impact-Innovators-main\backend\node_modules\mongoose\node_modules\mongodb\lib\cmap\connection_pool.js:443:77
+    at performInitialHandshake.then.connection.destroy.force (C:\Users\Purvi\Downloads\Impact-Innovators-main\Impact-Innovators-main\backend\node_modules\mongoose\node_modules\mongodb\lib\cmap\connect.js:42:65)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  address: 'ac-jm5woaa-shard-00-01.kffefs6.mongodb.net:27017',
+  Symbol(errorLabels): Set(1) { 'RetryableWriteError' }
+}

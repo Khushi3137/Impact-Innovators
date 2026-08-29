@@ -79,7 +79,10 @@ exports.getStudySessions = async (req, res) => {
   try {
     const { startDate, endDate, subject, limit = 50 } = req.query;
     
-    const filter = { userId: req.userId };
+    const filter = {
+      userId: req.userId,
+      notes: { $not: /^Pomodoro session stopped early/ }
+    };
     
     if (startDate || endDate) {
       filter.startTime = {};
@@ -598,23 +601,30 @@ exports.getStudyStreak = async (req, res) => {
 // Pomodoro timer functions
 exports.startPomodoro = async (req, res) => {
   try {
-    const { duration = 25, subject, taskId } = req.body;
+    const { duration = 25, subject, topic, taskId } = req.body;
     
-    const pomodoroSession = {
+    const session = new StudySession({
       userId: req.userId,
-      startTime: new Date(),
-      duration: parseInt(duration),
       subject: subject || 'General',
-      taskId: taskId || null,
-      status: 'active',
-      type: 'pomodoro'
-    };
+      topic: topic || 'Pomodoro focus session',
+      startTime: new Date(),
+      resources: taskId ? [{ type: 'task', url: String(taskId) }] : []
+    });
     
-    // In a real app, you would save this to a PomodoroSession model
-    // For now, we'll return a demo response
+    await session.save();
+    
     res.json({
       success: true,
-      session: pomodoroSession,
+      session: {
+        id: session._id,
+        _id: session._id,
+        subject: session.subject,
+        topic: session.topic,
+        startTime: session.startTime,
+        plannedDuration: parseInt(duration),
+        status: 'active',
+        type: 'pomodoro'
+      },
       message: `Pomodoro session started for ${duration} minutes`,
       endTime: new Date(Date.now() + duration * 60 * 1000)
     });
@@ -630,19 +640,44 @@ exports.startPomodoro = async (req, res) => {
 exports.endPomodoro = async (req, res) => {
   try {
     const { sessionId, completed = true, interruptions = 0 } = req.body;
-    
-    // In a real app, you would update the PomodoroSession
+
+    const session = await StudySession.findOne({
+      _id: sessionId,
+      userId: req.userId
+    });
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: 'Study session not found'
+      });
+    }
+
     const endTime = new Date();
+    const duration = Math.max(1, Math.round((endTime - session.startTime) / (1000 * 60)));
+
+    if (!completed) {
+      await StudySession.deleteOne({ _id: session._id, userId: req.userId });
+
+      return res.json({
+        success: true,
+        session: null,
+        message: 'Pomodoro session cancelled'
+      });
+    }
+
+    session.endTime = endTime;
+    session.duration = duration;
+    session.productivityScore = 8;
+    session.notes = 'Pomodoro session completed';
+    session.distractions = interruptions ? [`${interruptions} interruptions`] : [];
+
+    await session.save();
+    await updateDailyProgress(req.userId, session.subject, duration);
     
     res.json({
       success: true,
-      session: {
-        id: sessionId || 'pomodoro-' + Date.now(),
-        endTime,
-        completed,
-        interruptions,
-        status: 'completed'
-      },
+      session,
       message: `Pomodoro session ${completed ? 'completed' : 'cancelled'}`
     });
   } catch (error) {
