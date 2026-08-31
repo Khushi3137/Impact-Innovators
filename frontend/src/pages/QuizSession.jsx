@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { generateQuiz } from "../api/geminiApi";
 import { deleteSavedQuiz, getSavedQuizzes, recordQuizAttempt } from "../api/quizApi";
 
@@ -69,6 +69,27 @@ const getBestScore = (quiz) => {
   }, attempts[0]);
 };
 
+const getLatestAttempt = (quiz) => {
+  const attempts = quiz?.attempts || [];
+  if (!attempts.length) return null;
+
+  return attempts[attempts.length - 1];
+};
+
+const formatAttemptTime = (value) => {
+  if (!value) return "Just now";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Just now";
+
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const isCorrectAnswer = (selected, answer) => {
   if (!selected || !answer) return false;
 
@@ -102,8 +123,10 @@ export default function QuizSession() {
   const [rawQuiz, setRawQuiz] = useState("");
   const [savedQuizzes, setSavedQuizzes] = useState([]);
   const [activeQuizId, setActiveQuizId] = useState(null);
+  const [openedQuiz, setOpenedQuiz] = useState(null);
   const [scoreSaved, setScoreSaved] = useState(false);
   const [reviewMode, setReviewMode] = useState(false);
+  const quizDetailRef = useRef(null);
 
   const loadSavedQuizzes = async () => {
     try {
@@ -128,6 +151,11 @@ export default function QuizSession() {
     [questions, selectedAnswers]
   );
 
+  const activeQuiz = useMemo(
+    () => openedQuiz || savedQuizzes.find((quiz) => quiz._id === activeQuizId) || null,
+    [activeQuizId, openedQuiz, savedQuizzes]
+  );
+
   const handleGenerate = async (event) => {
     event.preventDefault();
     if (loading) return;
@@ -139,6 +167,7 @@ export default function QuizSession() {
       setSelectedAnswers({});
       setRawQuiz("");
       setActiveQuizId(null);
+      setOpenedQuiz(null);
       setScoreSaved(false);
       setReviewMode(false);
 
@@ -166,20 +195,47 @@ export default function QuizSession() {
   };
 
   const openSavedQuiz = (quiz) => {
+    const normalizedQuiz = {
+      ...quiz,
+      questions: Array.isArray(quiz.questions) ? quiz.questions : [],
+      attempts: Array.isArray(quiz.attempts) ? quiz.attempts : [],
+    };
+
     setFormData({
-      topic: quiz.topic || "",
-      subject: quiz.subject || "",
-      difficulty: quiz.difficulty || "medium",
-      numberOfQuestions: quiz.questions?.length || 5,
+      topic: normalizedQuiz.topic || "",
+      subject: normalizedQuiz.subject || "",
+      difficulty: normalizedQuiz.difficulty || "medium",
+      numberOfQuestions: normalizedQuiz.questions.length || 5,
     });
-    setQuestions((quiz.questions || []).map(normalizeQuestion));
+    setOpenedQuiz(normalizedQuiz);
+    setQuestions(normalizedQuiz.questions.map(normalizeQuestion));
     setSelectedAnswers({});
     setSubmitted(true);
     setRawQuiz("");
     setErrorMessage("");
-    setActiveQuizId(quiz._id);
     setScoreSaved(true);
     setReviewMode(true);
+    setActiveQuizId(normalizedQuiz._id || null);
+    window.requestAnimationFrame(() => {
+      quizDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  const toggleSavedQuiz = (quiz) => {
+    if (activeQuizId === quiz._id) {
+      setActiveQuizId(null);
+      setOpenedQuiz(null);
+      setQuestions([]);
+      setSelectedAnswers({});
+      setSubmitted(false);
+      setScoreSaved(false);
+      setReviewMode(false);
+      setRawQuiz("");
+      setErrorMessage("");
+      return;
+    }
+
+    openSavedQuiz(quiz);
   };
 
   const retakeQuiz = () => {
@@ -200,6 +256,7 @@ export default function QuizSession() {
 
       if (activeQuizId === quizId) {
         setActiveQuizId(null);
+        setOpenedQuiz(null);
         setQuestions([]);
         setSelectedAnswers({});
         setSubmitted(false);
@@ -223,23 +280,21 @@ export default function QuizSession() {
         answers: selectedAnswers,
       });
       setScoreSaved(true);
+      setOpenedQuiz((prev) =>
+        prev && prev._id === activeQuizId
+          ? {
+              ...data.quiz,
+              questions: Array.isArray(data.quiz?.questions) ? data.quiz.questions : prev.questions,
+              attempts: Array.isArray(data.quiz?.attempts) ? data.quiz.attempts : prev.attempts,
+            }
+          : prev
+      );
       setSavedQuizzes((prev) =>
         prev.map((quiz) => (quiz._id === activeQuizId ? data.quiz : quiz))
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     }
-  };
-
-  const openGfgReferences = () => {
-    const query = [formData.topic, formData.subject].filter(Boolean).join(" ").trim();
-    if (!query) return;
-
-    window.open(
-      `https://www.geeksforgeeks.org/search/?gq=${encodeURIComponent(query)}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
   };
 
   return (
@@ -327,14 +382,6 @@ export default function QuizSession() {
           {loading ? "Generating Quiz..." : "Generate Quiz"}
         </button>
 
-        <button
-          type="button"
-          onClick={openGfgReferences}
-          disabled={!formData.topic.trim()}
-          className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 font-semibold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-950/70 dark:disabled:border-gray-800 dark:disabled:bg-gray-900 dark:disabled:text-gray-600 md:col-span-4"
-        >
-          View GFG References
-        </button>
       </form>
 
       <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -349,6 +396,7 @@ export default function QuizSession() {
           {savedQuizzes.length ? (
             savedQuizzes.map((quiz) => {
               const bestScore = getBestScore(quiz);
+              const latestAttempt = getLatestAttempt(quiz);
               const isActive = activeQuizId === quiz._id;
 
               return (
@@ -361,14 +409,21 @@ export default function QuizSession() {
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <button type="button" onClick={() => openSavedQuiz(quiz)} className="min-w-0 flex-1 text-left">
+                    <button type="button" onClick={() => toggleSavedQuiz(quiz)} className="min-w-0 flex-1 text-left">
                       <p className="truncate font-semibold text-gray-950 dark:text-white">{quiz.topic}</p>
                       <p className="mt-1 text-xs capitalize text-gray-500 dark:text-gray-400">
                         {quiz.subject || "General"} | {quiz.difficulty || "medium"} | {quiz.questions?.length || 0} questions
                       </p>
-                      <p className="mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                        {bestScore ? `Best score: ${bestScore.score}/${bestScore.total}` : "Not attempted yet"}
+                      <p className="mt-2 text-xs font-medium text-indigo-700 dark:text-indigo-300">
+                        {latestAttempt
+                          ? `Latest score: ${latestAttempt.score}/${latestAttempt.total}`
+                          : "Not attempted yet"}
                       </p>
+                      {bestScore && (
+                        <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                          Best score: {bestScore.score}/{bestScore.total}
+                        </p>
+                      )}
                     </button>
                     <button
                       type="button"
@@ -390,7 +445,7 @@ export default function QuizSession() {
       </section>
       </div>
 
-      <div className="space-y-5">
+      <div ref={quizDetailRef} className="space-y-5">
       {errorMessage && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
           {errorMessage}
@@ -405,6 +460,59 @@ export default function QuizSession() {
 
       {questions.length > 0 && (
         <section className="space-y-4">
+          {activeQuiz?.attempts?.length ? (
+            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900 dark:border-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-100">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <h3 className="font-semibold">Attempts history</h3>
+            <span className="text-xs font-medium uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+              {activeQuiz.attempts.length} total
+            </span>
+          </div>
+              <div className="mt-3 rounded-md bg-white px-3 py-2 ring-1 ring-indigo-100 dark:bg-gray-900 dark:ring-indigo-900">
+                {(() => {
+                  const latestAttempt = getLatestAttempt(activeQuiz);
+                  return latestAttempt ? (
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      Latest score: {latestAttempt.score}/{latestAttempt.total}
+                    </p>
+                  ) : (
+                    <p className="font-medium text-gray-900 dark:text-white">No attempts yet</p>
+                  );
+                })()}
+              </div>
+              <div className="mt-3 space-y-2">
+                {activeQuiz.attempts
+                  .slice()
+                  .sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0))
+                  .map((attempt, index) => {
+                    const percent = attempt.total ? Math.round((attempt.score / attempt.total) * 100) : 0;
+
+                    return (
+                      <div
+                        key={`${attempt.submittedAt || "attempt"}-${index}`}
+                        className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 ring-1 ring-indigo-100 dark:bg-gray-900 dark:ring-indigo-900"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-900 dark:text-white">
+                            Attempt {activeQuiz.attempts.length - index}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatAttemptTime(attempt.submittedAt)}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {attempt.score}/{attempt.total}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{percent}%</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          ) : null}
+
           {reviewMode && (
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
               This saved quiz is open in review mode, so questions, answers, and explanations are visible.
@@ -467,14 +575,24 @@ export default function QuizSession() {
             </article>
           ))}
 
-          <button
-            type="button"
-            onClick={reviewMode ? retakeQuiz : handleSubmitAnswers}
-            disabled={submitted || Object.keys(selectedAnswers).length !== questions.length}
-            className="w-full rounded bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-400"
-          >
-            {reviewMode ? "Retake Quiz" : submitted ? `Score saved: ${score}/${questions.length}` : "Submit Answers"}
-          </button>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={retakeQuiz}
+              disabled={!submitted}
+              className="rounded border border-indigo-200 bg-indigo-50 px-4 py-3 font-semibold text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 dark:border-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-200 dark:hover:bg-indigo-950/50 dark:disabled:border-gray-800 dark:disabled:bg-gray-900 dark:disabled:text-gray-600"
+            >
+              Retake Quiz
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmitAnswers}
+              disabled={submitted || Object.keys(selectedAnswers).length !== questions.length}
+              className="rounded bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-400"
+            >
+              {submitted ? `Score saved: ${score}/${questions.length}` : "Submit Answers"}
+            </button>
+          </div>
         </section>
       )}
       </div>

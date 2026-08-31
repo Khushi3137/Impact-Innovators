@@ -30,6 +30,11 @@ export const acceptGroupInvite = async (groupId) => {
   return res.data;
 };
 
+export const leaveGroup = async (groupId) => {
+  const res = await api.post(`/groups/${groupId}/leave`);
+  return res.data;
+};
+
 export const getJoinRequests = async () => {
   const res = await api.get("/groups/join-requests");
   return res.data;

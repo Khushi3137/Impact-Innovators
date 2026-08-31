@@ -227,17 +227,6 @@ export default function DoubtSolver() {
     }
   };
 
-  const openGfgReferences = () => {
-    const query = [formData.subject, formData.problem].filter(Boolean).join(" ").trim();
-    if (!query) return;
-
-    window.open(
-      `https://www.geeksforgeeks.org/search/?gq=${encodeURIComponent(query)}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
-  };
-
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-5 xl:grid-cols-[0.85fr_1.15fr]">
       <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
@@ -289,14 +278,6 @@ export default function DoubtSolver() {
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={openGfgReferences}
-            disabled={!formData.problem.trim() && !formData.subject.trim()}
-            className="w-full rounded border border-emerald-200 bg-emerald-50 px-4 py-3 font-semibold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-950/70 dark:disabled:border-gray-800 dark:disabled:bg-gray-900 dark:disabled:text-gray-600"
-          >
-            View GFG References
-          </button>
         </form>
 
         {errorMessage && (

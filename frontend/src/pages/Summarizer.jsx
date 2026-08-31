@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { summarizeFile, summarizeText } from "../api/geminiApi";
+import { AuthContext } from "../context/authContextValue";
+
+const STORAGE_PREFIX = "summarizer-state-v1";
 
 const getErrorMessage = (error) =>
   error.response?.data?.message ||
@@ -9,11 +12,77 @@ const getErrorMessage = (error) =>
     : "Unable to generate summary.");
 
 export default function Summarizer() {
+  const { user } = useContext(AuthContext);
   const [file, setFile] = useState(null);
+  const [fileName, setFileName] = useState("");
   const [text, setText] = useState("");
   const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const userId = user?._id?.toString();
+
+    setLoading(false);
+    setErrorMessage("");
+
+    if (!userId) {
+      setFile(null);
+      setFileName("");
+      setText("");
+      setSummary("");
+      return;
+    }
+
+    try {
+      const stored = sessionStorage.getItem(`${STORAGE_PREFIX}:${userId}`);
+      if (!stored) {
+        setFile(null);
+        setFileName("");
+        setText("");
+        setSummary("");
+        return;
+      }
+
+      const parsed = JSON.parse(stored);
+      setFile(null);
+      setFileName(parsed.fileName || "");
+      setText(parsed.text || "");
+      setSummary(parsed.summary || "");
+    } catch {
+      setFile(null);
+      setFileName("");
+      setText("");
+      setSummary("");
+    }
+  }, [user?._id]);
+
+  useEffect(() => {
+    const userId = user?._id?.toString();
+    if (!userId) return;
+
+    sessionStorage.setItem(
+      `${STORAGE_PREFIX}:${userId}`,
+      JSON.stringify({
+        text,
+        summary,
+        fileName,
+      })
+    );
+  }, [fileName, summary, text, user?._id]);
+
+  const clearSummary = () => {
+    setFile(null);
+    setFileName("");
+    setText("");
+    setSummary("");
+    setErrorMessage("");
+
+    const userId = user?._id?.toString();
+    if (userId) {
+      sessionStorage.removeItem(`${STORAGE_PREFIX}:${userId}`);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!file && !text.trim()) {
@@ -55,7 +124,9 @@ export default function Summarizer() {
           accept=".pdf,.doc,.docx,.txt,.md,.csv,.mp3,.wav,.ogg,.m4a,.mp4,.mkv,.avi,.mov,.webm,application/pdf,application/x-pdf"
           className="hidden"
           onChange={(e) => {
-            setFile(e.target.files[0] || null);
+            const nextFile = e.target.files[0] || null;
+            setFile(nextFile);
+            setFileName(nextFile?.name || "");
             setErrorMessage("");
           }}
         />
@@ -70,6 +141,12 @@ export default function Summarizer() {
       {file && (
         <p className="text-sm text-green-600 dark:text-green-400 font-medium">
           Selected file: {file.name}. Ready to generate a summary.
+        </p>
+      )}
+
+      {!file && fileName && summary && (
+        <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+          Restored summary from this session for: {fileName}
         </p>
       )}
 
@@ -96,6 +173,14 @@ export default function Summarizer() {
         className="w-full md:w-auto bg-indigo-600 dark:bg-indigo-500 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all shadow-sm disabled:cursor-not-allowed disabled:bg-indigo-400"
       >
         {loading ? "Generating..." : "Generate Study Notes"}
+      </button>
+
+      <button
+        type="button"
+        onClick={clearSummary}
+        className="ml-0 w-full md:ml-3 md:w-auto bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-all shadow-sm"
+      >
+        Clear
       </button>
 
       <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
