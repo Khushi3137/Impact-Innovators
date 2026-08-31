@@ -5,12 +5,9 @@ const pdfParse = pdfParseModule.default || pdfParseModule;
 
 const mammoth = require('mammoth');
 const Jimp = require('jimp');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { callGroq, hasGroqApiKey } = require('./groqClient');
 const videoProcessor = require('./videoProcessor');
 const audioProcessor = require('./audioProcessor');
-
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 function createLocalSummary(content) {
   const normalized = String(content || '').replace(/\s+/g, ' ').trim();
@@ -46,15 +43,8 @@ function createLocalSummary(content) {
   return `## Quick Overview\n${normalized.substring(0, 800)}\n\n## Revision Questions\n- What is this material mainly about?\n- What are the most important points to remember?`;
 }
 
-function hasGeminiApiKey() {
-  return Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim());
-}
-
 class FileProcessor {
   constructor() {
-    this.geminiModel = genAI.getGenerativeModel({ 
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash" 
-    });
     this.tempDir = path.join(__dirname, '../temp');
   }
 
@@ -123,7 +113,7 @@ async processPDF(buffer, fileName, prompt) {
     const pdfData = await pdfParse(buffer);
     
     if (!pdfData || !pdfData.text || !pdfData.text.trim()) {
-      const analysis = await this.analyzeBinaryWithGemini(
+      const analysis = await this.analyzeBinaryWithAI(
         buffer,
         'application/pdf',
         prompt || 'Read this PDF and summarize the important study points.'
@@ -144,7 +134,7 @@ async processPDF(buffer, fileName, prompt) {
         analysis,
         questions: [],
         summary: analysis,
-        note: 'This PDF did not contain selectable text, so it was processed as a file with Gemini.',
+        note: 'This PDF did not contain selectable text, so it was processed as a binary file.',
         processingTime: Date.now()
       };
     }
@@ -226,8 +216,7 @@ async processPDF(buffer, fileName, prompt) {
     try {
       const base64Image = buffer.toString('base64');
       
-      // Analyze with Gemini Vision
-      const visionAnalysis = await this.analyzeImageWithGemini(base64Image, mimeType, prompt);
+      const visionAnalysis = await this.analyzeImageWithAI(base64Image, mimeType, prompt);
       
       // Optional: Process with Jimp for additional info
       let imageInfo = {};
@@ -278,7 +267,7 @@ async processPDF(buffer, fileName, prompt) {
       // Analyze frames with AI
       const frameAnalyses = [];
       for (let i = 0; i < Math.min(frames.length, 3); i++) {
-        const frameAnalysis = await this.analyzeImageWithGemini(
+        const frameAnalysis = await this.analyzeImageWithAI(
           frames[i].base64, 
           'image/jpeg', 
           `Analyze this frame from a video: ${prompt || 'What is shown?'}`
@@ -294,7 +283,7 @@ async processPDF(buffer, fileName, prompt) {
       if (audio && audio.path) {
         try {
           const audioBuffer = await fs.readFile(audio.path);
-          transcription = await audioProcessor.transcribeWithGemini(audioBuffer, 'audio/mp3');
+          transcription = await audioProcessor.transcribeAudio(audioBuffer, 'audio/mp3');
         } catch (transcribeError) {
           console.warn('Audio transcription failed:', transcribeError.message);
         }
@@ -333,7 +322,7 @@ async processPDF(buffer, fileName, prompt) {
       const waveform = await audioProcessor.createWaveform(tempPath);
       
       // Transcribe
-      const transcription = await audioProcessor.transcribeWithGemini(buffer, mimeType);
+      const transcription = await audioProcessor.transcribeAudio(buffer, mimeType);
       
       // Analyze content
       const analysis = await audioProcessor.analyzeAudio(buffer, mimeType, prompt);
@@ -432,59 +421,31 @@ async processPDF(buffer, fileName, prompt) {
   }
 
   // Helper methods for AI analysis
-  async analyzeImageWithGemini(base64Image, mimeType, prompt) {
-    try {
-      const result = await this.geminiModel.generateContent([
-        { text: prompt || "Analyze this image for educational content." },
-        {
-          inlineData: {
-            mimeType: mimeType,
-            data: base64Image
-          }
-        }
-      ]);
-      return result.response.text();
-    } catch (error) {
-      return `Image analysis failed: ${error.message}`;
-    }
+  async analyzeImageWithAI(base64Image, mimeType, prompt) {
+    return 'Image analysis is not available with the current Groq text model. Please upload a text-based document or paste the text to summarize.';
   }
 
-  async analyzeBinaryWithGemini(buffer, mimeType, prompt) {
-    if (!hasGeminiApiKey()) {
-      throw new Error('This file has no readable text. Add GEMINI_API_KEY in backend/.env to summarize scanned PDFs or image-based files.');
-    }
-
-    const result = await this.geminiModel.generateContent([
-      { text: prompt || 'Analyze this educational file and provide a concise study summary.' },
-      {
-        inlineData: {
-          mimeType,
-          data: buffer.toString('base64')
-        }
-      }
-    ]);
-
-    return result.response.text();
+  async analyzeBinaryWithAI(buffer, mimeType, prompt) {
+    throw new Error('This file has no readable text. Please upload a text-based PDF or paste the text to summarize.');
   }
 
   async analyzeContent(content, contentType, prompt) {
     try {
-      if (!hasGeminiApiKey()) {
+      if (!hasGroqApiKey()) {
         return createLocalSummary(content);
       }
 
       const fullPrompt = `${prompt}\n\n${contentType}:\n${content.substring(0, 5000)}`;
-      const result = await this.geminiModel.generateContent(fullPrompt);
-      return result.response.text();
+      return await callGroq(fullPrompt);
     } catch (error) {
-      console.warn('Gemini content analysis failed:', error.message);
+      console.warn('AI content analysis failed:', error.message);
       return createLocalSummary(content);
     }
   }
 
   async generateSummary(content) {
     try {
-      if (!hasGeminiApiKey()) {
+      if (!hasGroqApiKey()) {
         return createLocalSummary(content);
       }
 
@@ -501,40 +462,37 @@ Use this format:
 Content:
 ${content.substring(0, 5000)}
 `;
-      const result = await this.geminiModel.generateContent(prompt);
-      return result.response.text();
+      return await callGroq(prompt);
     } catch (error) {
-      console.warn('Gemini summary generation failed:', error.message);
+      console.warn('AI summary generation failed:', error.message);
       return createLocalSummary(content);
     }
   }
 
   async generateQuestions(content) {
     try {
-      if (!hasGeminiApiKey()) {
+      if (!hasGroqApiKey()) {
         return [];
       }
 
       const prompt = `Based on this content, generate 5 study questions with answers:\n\n${content.substring(0, 3000)}`;
-      const result = await this.geminiModel.generateContent(prompt);
-      return result.response.text();
+      return await callGroq(prompt);
     } catch (error) {
-      console.warn('Gemini question generation failed:', error.message);
+      console.warn('AI question generation failed:', error.message);
       return [];
     }
   }
 
   async extractKeyPoints(content) {
     try {
-      if (!hasGeminiApiKey()) {
+      if (!hasGroqApiKey()) {
         return createLocalSummary(content);
       }
 
       const prompt = `Extract 5-10 key points from this content:\n\n${content.substring(0, 3000)}`;
-      const result = await this.geminiModel.generateContent(prompt);
-      return result.response.text();
+      return await callGroq(prompt);
     } catch (error) {
-      console.warn('Gemini key point extraction failed:', error.message);
+      console.warn('AI key point extraction failed:', error.message);
       return createLocalSummary(content);
     }
   }
@@ -566,8 +524,7 @@ ${content.substring(0, 5000)}
         5. Related topics to explore
       `;
       
-      const result = await this.geminiModel.generateContent(analysisPrompt);
-      return result.response.text();
+      return await callGroq(analysisPrompt);
     } catch (error) {
       return `Video analysis failed: ${error.message}`;
     }

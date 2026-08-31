@@ -1,5 +1,10 @@
 import api from "./axios";
 
+export const getDashboardData = async () => {
+  const res = await api.get("/study/dashboard");
+  return res.data;
+};
+
 export const getStudyStats = async (period = "week") => {
   const res = await api.get("/study/stats", { params: { period } });
   return res.data;

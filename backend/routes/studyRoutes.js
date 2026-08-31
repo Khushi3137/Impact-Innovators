@@ -5,6 +5,8 @@ const { authMiddleware } = require('../middleware/authMiddleware');
 
 router.use(authMiddleware);
 
+router.get('/dashboard', studyController.getDashboardData);
+
 // Study sessions
 router.post('/session/start', studyController.startStudySession);
 router.post('/session/end', studyController.endStudySession);

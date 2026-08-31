@@ -4,7 +4,8 @@ export default function Sidebar() {
       <ul className="space-y-2">
         <li className="hover:bg-gray-200 p-2 rounded">Upload Lecture</li>
         <li className="hover:bg-gray-200 p-2 rounded">Summarize Notes</li>
-        <li className="hover:bg-gray-200 p-2 rounded">Generate Flashcards</li>
+        <li className="hover:bg-gray-200 p-2 rounded">Generate Quiz</li>
+        <li className="hover:bg-gray-200 p-2 rounded">Solve Doubts</li>
         <li className="hover:bg-gray-200 p-2 rounded">Start Study Session</li>
       </ul>
     </aside>

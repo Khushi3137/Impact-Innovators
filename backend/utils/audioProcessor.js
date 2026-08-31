@@ -1,12 +1,10 @@
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs').promises;
 const path = require('path');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 class AudioProcessor {
   constructor() {
     this.tempDir = path.join(__dirname, '../temp');
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   }
 
   // Get audio metadata
@@ -83,65 +81,17 @@ class AudioProcessor {
     });
   }
 
-  // Transcribe audio using Gemini (basic)
-  async transcribeWithGemini(audioBuffer, mimeType) {
-    try {
-      const base64Audio = audioBuffer.toString('base64');
-      const model = this.genAI.getGenerativeModel({ 
-        model: process.env.GEMINI_MODEL || "gemini-2.5-pro" 
-      });
-
-      const prompt = "Transcribe this audio content accurately. Include timestamps if possible.";
-
-      const result = await model.generateContent([
-        { text: prompt },
-        {
-          inlineData: {
-            mimeType: mimeType,
-            data: base64Audio
-          }
-        }
-      ]);
-
-      return {
-        text: result.response.text(),
-        success: true,
-        method: 'gemini'
-      };
-    } catch (error) {
-      console.error('Gemini transcription error:', error);
-      return {
-        text: 'Transcription not available. Audio processed successfully.',
-        success: false,
-        method: 'fallback'
-      };
-    }
+  async transcribeAudio() {
+    return {
+      text: 'Transcription not available with the current Groq text model.',
+      success: false,
+      method: 'fallback'
+    };
   }
 
   // Analyze audio content with AI
   async analyzeAudio(audioBuffer, mimeType, prompt = "Analyze this audio content") {
-    try {
-      const base64Audio = audioBuffer.toString('base64');
-      const model = this.genAI.getGenerativeModel({ 
-        model: process.env.GEMINI_MODEL || "gemini-2.5-pro" 
-      });
-
-      const fullPrompt = `${prompt}. Provide key insights, topics discussed, and educational value.`;
-
-      const result = await model.generateContent([
-        { text: fullPrompt },
-        {
-          inlineData: {
-            mimeType: mimeType,
-            data: base64Audio
-          }
-        }
-      ]);
-
-      return result.response.text();
-    } catch (error) {
-      return `Audio analysis failed: ${error.message}`;
-    }
+    return 'Audio analysis is not available with the current Groq text model.';
   }
 
   // Normalize audio volume

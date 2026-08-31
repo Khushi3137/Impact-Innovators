@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -11,18 +11,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { getFlashcardStats } from "../api/flashcardApi";
 import {
-  getStudySessions,
-  getStudyStats,
-  getStudyStreak,
-  getTasks,
-  getTodayProgress,
+  getDashboardData,
 } from "../api/studyApi";
 import { ThemeContext } from "../context/themeContextValue";
 
 const CALENDAR_STORAGE_KEY = "study-calendar-events";
-const POLL_MS = 5000;
+const POLL_MS = 10000;
 const WEEK_DAYS = 7;
 
 const cardClasses =
@@ -115,13 +110,6 @@ const buildSubjectRows = (bySubject = {}, sessions = []) => {
   return Object.values(grouped).sort((a, b) => b.minutes - a.minutes).slice(0, 5);
 };
 
-const normalizeSettled = (result, fallback, errors) => {
-  if (result.status === "fulfilled") return result.value || fallback;
-
-  errors.push(getErrorMessage(result.reason));
-  return fallback;
-};
-
 export default function Dashboard() {
   const { dark } = useContext(ThemeContext);
   const [dashboard, setDashboard] = useState({
@@ -129,7 +117,6 @@ export default function Dashboard() {
     sessions: [],
     tasks: [],
     taskStats: {},
-    flashcardStats: {},
     streak: {},
     today: {},
     calendarToday: 0,
@@ -138,45 +125,40 @@ export default function Dashboard() {
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const isLoadingRef = useRef(false);
 
   const loadDashboard = useCallback(async ({ silent = false } = {}) => {
+    if (isLoadingRef.current) return;
+
+    isLoadingRef.current = true;
+
     if (silent) {
       setRefreshing(true);
     } else {
       setLoading(true);
     }
 
-    const results = await Promise.allSettled([
-      getStudyStats("week"),
-      getStudySessions({ limit: 100 }),
-      getFlashcardStats(),
-      getStudyStreak(),
-      getTodayProgress(),
-      getTasks({ sortBy: "dueDate", sortOrder: "asc" }),
-    ]);
+    try {
+      const data = await getDashboardData();
 
-    const nextErrors = [];
-    const studyStatsData = normalizeSettled(results[0], {}, nextErrors);
-    const sessionData = normalizeSettled(results[1], {}, nextErrors);
-    const flashcardData = normalizeSettled(results[2], {}, nextErrors);
-    const streakData = normalizeSettled(results[3], {}, nextErrors);
-    const todayData = normalizeSettled(results[4], {}, nextErrors);
-    const taskData = normalizeSettled(results[5], {}, nextErrors);
-
-    setDashboard({
-      studyStats: studyStatsData.stats || {},
-      sessions: sessionData.sessions || [],
-      tasks: taskData.tasks || [],
-      taskStats: taskData.stats || studyStatsData.stats?.tasks || {},
-      flashcardStats: flashcardData.stats || {},
-      streak: streakData || {},
-      today: todayData.today || {},
-      calendarToday: getTodayCalendarCount(),
-    });
-    setErrors([...new Set(nextErrors)]);
-    setLastUpdated(new Date());
-    setLoading(false);
-    setRefreshing(false);
+      setDashboard({
+        studyStats: data.studyStats || {},
+        sessions: data.sessions || [],
+        tasks: data.tasks || [],
+        taskStats: data.taskStats || data.studyStats?.tasks || {},
+        streak: data.streak || {},
+        today: data.today || {},
+        calendarToday: getTodayCalendarCount(),
+      });
+      setErrors([]);
+      setLastUpdated(new Date());
+    } catch (error) {
+      setErrors([getErrorMessage(error)]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+      isLoadingRef.current = false;
+    }
   }, []);
 
   useEffect(() => {
@@ -249,7 +231,6 @@ export default function Dashboard() {
   const weeklyGoalPercent = Math.min(100, Math.round((totalStudyMinutes / weeklyGoal) * 100));
   const todayGoalPercent = Math.min(100, Math.round((todayMinutes / dailyGoal) * 100));
   const completionRate = Math.round(dashboard.taskStats.completionRate || 0);
-  const masteryScore = Math.round(dashboard.flashcardStats.masteryScore || 0);
 
   const axisColor = dark ? "#9ca3af" : "#64748b";
   const gridColor = dark ? "#1f2937" : "#e5e7eb";
@@ -273,7 +254,7 @@ export default function Dashboard() {
             </div>
             <h1 className="mt-3 text-3xl font-bold text-gray-950 dark:text-white">Dashboard</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-300">
-              Your study sessions, tasks, flashcards, and calendar activity update automatically from your account data.
+              Your study sessions, tasks, quiz practice, and calendar activity update automatically from your account data.
             </p>
             <p className="mt-2 text-xs font-medium text-gray-500 dark:text-gray-400">
               {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : "Preparing your dashboard"}
@@ -317,9 +298,9 @@ export default function Dashboard() {
           accent="amber"
         />
         <MetricCard
-          label="Flashcards"
-          value={dashboard.flashcardStats.total || 0}
-          helper={`${dashboard.flashcardStats.dueForReview || 0} due now`}
+          label="AI Practice"
+          value="Quiz"
+          helper="Generate from any topic"
           accent="sky"
         />
       </section>
@@ -383,7 +364,7 @@ export default function Dashboard() {
           <h2 className="text-lg font-bold text-gray-950 dark:text-white">Today</h2>
           <div className="mt-5 space-y-5">
             <ProgressBar label="Study goal" value={todayGoalPercent} detail={`${formatDuration(todayMinutes)} / 4h`} />
-            <ProgressBar label="Flashcard mastery" value={masteryScore} detail={`${masteryScore}%`} />
+            <ProgressBar label="Task completion" value={completionRate} detail={`${completionRate}%`} />
             <ProgressBar label="Weekly goal" value={weeklyGoalPercent} detail={`${formatDuration(totalStudyMinutes)} / 10h`} />
           </div>
           <div className="mt-5 grid grid-cols-2 gap-3">

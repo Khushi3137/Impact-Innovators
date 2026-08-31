@@ -1,29 +1,10 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require('fs').promises;
 const fileProcessor = require('../utils/fileProcessor');
-
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+const { callGroq } = require('../utils/groqClient');
+const Quiz = require('../models/Quiz');
 
 let lastRequestTime = 0;
 const REQUEST_DELAY = 2000;
-
-function ensureGeminiApiKey() {
-  if (!process.env.GEMINI_API_KEY) {
-    const error = new Error('GEMINI_API_KEY is not configured');
-    error.statusCode = 503;
-    throw error;
-  }
-}
-
-function getGeminiModel() {
-  ensureGeminiApiKey();
-
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  return genAI.getGenerativeModel({
-    model: process.env.GEMINI_MODEL || "gemini-2.5-flash"
-  });
-}
 
 // helper to delay requests
 async function delayIfNeeded() {
@@ -34,21 +15,9 @@ async function delayIfNeeded() {
   lastRequestTime = Date.now();
 }
 
-async function callGemini(prompt) {
-  ensureGeminiApiKey();
+async function callAI(prompt) {
   await delayIfNeeded();
-  const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    }
-  );
-  const data = await response.json();
-  if (!data.candidates) throw new Error(JSON.stringify(data));
-  return data.candidates[0].content.parts[0].text;
+  return callGroq(prompt);
 }
 
 function createStudyNotesPrompt({ content, subject, maxLength = 700, extraInstruction }) {
@@ -90,6 +59,45 @@ ${content}
 `;
 }
 
+function parseJsonFromText(text) {
+  const cleaned = String(text || '')
+    .replace(/```json/gi, '')
+    .replace(/```/g, '')
+    .trim();
+
+  const candidates = [
+    cleaned,
+    cleaned.slice(cleaned.indexOf('['), cleaned.lastIndexOf(']') + 1),
+    cleaned.slice(cleaned.indexOf('{'), cleaned.lastIndexOf('}') + 1)
+  ].filter((candidate) => candidate && candidate.length > 1);
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // Try the next likely JSON segment.
+    }
+  }
+
+  return null;
+}
+
+function normalizeQuizQuestion(question, index, fallbackDifficulty) {
+  const options = question.options || question.choices || [];
+  const optionList = Array.isArray(options)
+    ? options.map((option, optionIndex) => String(option || '').trim() || `Option ${optionIndex + 1}`)
+    : Object.entries(options).map(([key, value]) => `${key}. ${value}`);
+
+  return {
+    question: String(question.question || question.text || `Question ${index + 1}`).trim(),
+    options: optionList.slice(0, 4),
+    correctAnswer: String(question.correctAnswer || question.correct_answer || question.answer || '').trim(),
+    explanation: String(question.explanation || question.reason || '').trim(),
+    category: String(question.category || '').trim(),
+    difficulty: String(question.difficulty || fallbackDifficulty || 'medium').toLowerCase()
+  };
+}
+
 /* ===================== ROUTES ===================== */
 
 exports.askGemini = async (req, res) => {
@@ -101,8 +109,7 @@ exports.askGemini = async (req, res) => {
       ${context ? `Additional Context: ${context}` : ""}
       Provide step-by-step explanation, examples, key takeaways, recommended resources, and practice questions.
     `;
-    const result = await getGeminiModel().generateContent(enhancedPrompt);
-    const responseText = result.response.text();
+    const responseText = await callAI(enhancedPrompt);
     res.json({ success: true, response: responseText, timestamp: new Date() });
   } catch (err) {
     console.error(err);
@@ -117,7 +124,7 @@ exports.explainConcept = async (req, res) => {
       Explain the concept "${concept}" in ${subject || 'general'} 
       to a ${level} student. Include definition, analogy, key points, misconceptions, practical use.
     `;
-    const explanation = await callGemini(prompt);
+    const explanation = await callAI(prompt);
     res.json({ success: true, explanation, concept, level, subject });
   } catch (err) {
     res.status(err.statusCode || 500).json({ success: false, error: err.message });
@@ -133,7 +140,7 @@ exports.generateStudyPlan = async (req, res) => {
       Days: ${days}, Hours/day: ${hoursPerDay}, Exam: ${examDate}, Current level: ${currentLevel}
       Include daily schedule, topic priority, revision, mock tests, breaks, and resources.
     `;
-    const studyPlan = await callGemini(prompt);
+    const studyPlan = await callAI(prompt);
     res.json({ success: true, studyPlan, generatedAt: new Date() });
   } catch (err) {
     res.status(err.statusCode || 500).json({ success: false, error: err.message });
@@ -148,7 +155,7 @@ exports.generateFlashcards = async (req, res) => {
       Each flashcard: question, answer, key points, difficulty, related concepts.
       Return as JSON array.
     `;
-    const text = await callGemini(prompt);
+    const text = await callAI(prompt);
     let flashcards;
     try {
       flashcards = JSON.parse(text);
@@ -175,7 +182,7 @@ exports.summarizeText = async (req, res) => {
       maxLength,
       extraInstruction
     });
-    const summary = await callGemini(prompt);
+    const summary = await callAI(prompt);
     res.json({ success: true, summary, originalLength: text.length, summaryLength: summary.length });
   } catch (err) {
     res.status(err.statusCode || 500).json({ success: false, error: err.message });
@@ -188,12 +195,41 @@ exports.generateQuiz = async (req, res) => {
     const prompt = `
       Generate a quiz with ${numberOfQuestions} questions on "${topic}" in ${subject || 'general'}.
       Include question text, 4 options (A-D), correct answer, explanation, category, difficulty.
-      Return as JSON array.
+      Difficulty must be ${difficulty}.
+      Return only a valid JSON array. Do not include markdown, code fences, or extra text.
     `;
-    const text = await callGemini(prompt);
-    let quiz;
-    try { quiz = JSON.parse(text); } catch { quiz = { raw: text, questions: [] }; }
-    res.json({ success: true, quiz, topic, difficulty, numberOfQuestions, subject });
+    const text = await callAI(prompt);
+    const parsedQuiz = parseJsonFromText(text);
+    const quiz = Array.isArray(parsedQuiz)
+      ? parsedQuiz
+      : Array.isArray(parsedQuiz?.questions)
+        ? parsedQuiz.questions
+        : { raw: text, questions: [] };
+
+    const normalizedQuestions = Array.isArray(quiz)
+      ? quiz.map((question, index) => normalizeQuizQuestion(question, index, difficulty))
+      : [];
+
+    let savedQuiz = null;
+    if (normalizedQuestions.length) {
+      savedQuiz = await Quiz.create({
+        userId: req.userId,
+        topic,
+        subject: subject || 'General',
+        difficulty,
+        questions: normalizedQuestions
+      });
+    }
+
+    res.json({
+      success: true,
+      quiz: normalizedQuestions.length ? normalizedQuestions : quiz,
+      savedQuiz,
+      topic,
+      difficulty,
+      numberOfQuestions,
+      subject
+    });
   } catch (err) {
     res.status(err.statusCode || 500).json({ success: false, message: "Error generating quiz", error: err.message });
   }
@@ -201,13 +237,26 @@ exports.generateQuiz = async (req, res) => {
 
 exports.solveProblem = async (req, res) => {
   try {
-    const { problem, subject, showSteps = true } = req.body;
+    const { problem, subject, context, showSteps = true } = req.body;
     const prompt = `
       Solve this ${subject || 'academic'} problem:
+      ${context ? `Previous discussion:\n${context}\n` : ''}
       Problem: ${problem}
-      Provide step-by-step solution${showSteps ? " with explanations" : ""}.
+      If this is a follow-up, use the previous discussion for context and continue from there.
+      Provide a student-friendly solution${showSteps ? " with clear steps and short explanations" : ""}.
+      Use this exact structure:
+      ## Short Answer
+      Give the direct answer in 1-2 sentences.
+      ## Step-by-Step
+      Use numbered steps. Keep each step focused.
+      ## Key Idea
+      Explain the main concept simply.
+      ## Common Mistake
+      Mention one mistake students often make.
+      ## Final Answer
+      Restate the final result clearly.
     `;
-    const solution = await callGemini(prompt);
+    const solution = await callAI(prompt);
     res.json({ success: true, solution, problem, subject: subject || 'general', stepsIncluded: showSteps, timestamp: new Date() });
   } catch (err) {
     res.status(err.statusCode || 500).json({ success: false, message: "Error solving problem", error: err.message });
@@ -221,7 +270,7 @@ exports.generatePracticeQuestions = async (req, res) => {
       Generate ${count} ${type} questions for "${topic}" in ${subject || 'general'}.
       Include instructions, answers, points, difficulty variation.
     `;
-    const questions = await callGemini(prompt);
+    const questions = await callAI(prompt);
     res.json({ success: true, questions, topic, type, count, subject });
   } catch (err) {
     res.status(err.statusCode || 500).json({ success: false, error: err.message });
@@ -238,7 +287,7 @@ exports.checkAnswer = async (req, res) => {
       Correct Answer: ${correctAnswer || 'Provide correct answer'}
       Provide score (0-100%), feedback, areas of improvement.
     `;
-    const evaluation = await callGemini(prompt);
+    const evaluation = await callAI(prompt);
     const scoreMatch = evaluation.match(/(\d+)%/);
     res.json({ success: true, evaluation, score: scoreMatch ? parseInt(scoreMatch[1]) : null, question, studentAnswer, timestamp: new Date() });
   } catch (err) {

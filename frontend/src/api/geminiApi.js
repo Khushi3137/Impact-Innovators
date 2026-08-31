@@ -27,3 +27,25 @@ export const generateFlashcards = async ({ topic, subject, numberOfCards = 6 }) 
   });
   return res.data;
 };
+
+export const generateQuiz = async ({ topic, subject, numberOfQuestions = 5, difficulty = "medium" }) => {
+  const res = await api.post("/gemini/quiz", {
+    topic,
+    subject,
+    numberOfQuestions,
+    difficulty,
+  });
+
+  return res.data;
+};
+
+export const solveDoubt = async ({ problem, subject, context }) => {
+  const res = await api.post("/gemini/solve", {
+    problem,
+    subject,
+    context,
+    showSteps: true,
+  });
+
+  return res.data;
+};
