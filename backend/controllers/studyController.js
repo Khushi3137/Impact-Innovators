@@ -1,6 +1,7 @@
 const StudySession = require('../models/StudySession');
 const Task = require('../models/Task');
 const Progress = require('../models/Progress');
+const Flashcard = require('../models/Flashcard');
 
 exports.startStudySession = async (req, res) => {
   try {
@@ -563,6 +564,163 @@ exports.getStudyStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch study statistics'
+    });
+  }
+};
+
+exports.getDashboardData = async (req, res) => {
+  try {
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - 7);
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const tomorrowStart = new Date(todayStart);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+    const sessionFilter = {
+      userId: req.userId,
+      startTime: { $gte: weekStart },
+      notes: { $not: /^Pomodoro session stopped early/ }
+    };
+
+    const [sessions, tasks, allFlashcards, streakSessions, todaySessions] = await Promise.all([
+      StudySession.find(sessionFilter).sort({ startTime: -1 }).limit(100),
+      Task.find({ userId: req.userId }).sort({ dueDate: 1 }),
+      Flashcard.find({ userId: req.userId }),
+      StudySession.find({ userId: req.userId }).sort({ startTime: -1 }).limit(100),
+      StudySession.find({
+        userId: req.userId,
+        startTime: { $gte: todayStart, $lt: tomorrowStart }
+      })
+    ]);
+
+    const studyStats = await calculateStudyStats(req.userId, sessionFilter);
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => task.status === 'completed').length;
+    const overdueTasks = tasks.filter(task => task.status === 'overdue').length;
+    const inProgressTasks = tasks.filter(task => task.status === 'in-progress').length;
+
+    const now = new Date();
+    const totalFlashcards = allFlashcards.length;
+    const dueForReview = allFlashcards.filter(card => card.nextReviewDate <= now).length;
+    const flashcardsBySubject = {};
+
+    allFlashcards.forEach(card => {
+      if (!flashcardsBySubject[card.subject]) {
+        flashcardsBySubject[card.subject] = {
+          total: 0,
+          easy: 0,
+          medium: 0,
+          hard: 0,
+          due: 0
+        };
+      }
+
+      flashcardsBySubject[card.subject].total += 1;
+      flashcardsBySubject[card.subject][card.difficulty] += 1;
+
+      if (card.nextReviewDate <= now) {
+        flashcardsBySubject[card.subject].due += 1;
+      }
+    });
+
+    const masteryScore = totalFlashcards > 0
+      ? (allFlashcards.filter(card =>
+          card.reviews.length >= 3 &&
+          card.reviews.slice(-3).every(review => review.performance >= 4)
+        ).length / totalFlashcards) * 100
+      : 0;
+
+    const recentReviews = allFlashcards
+      .flatMap(card => {
+        const latestReview = card.reviews[card.reviews.length - 1];
+
+        if (!latestReview || latestReview.date < todayStart) {
+          return [];
+        }
+
+        return [{
+          cardId: card._id,
+          question: card.question,
+          performance: latestReview.performance,
+          date: latestReview.date
+        }];
+      })
+      .sort((a, b) => b.date - a.date)
+      .slice(0, 10);
+
+    const streakDates = [...new Set(streakSessions.map(session => session.startTime.toISOString().split('T')[0]))];
+    const todayKey = new Date().toISOString().split('T')[0];
+    const todayTasks = tasks.filter(task => {
+      if (!task.dueDate) return false;
+
+      const dueDate = new Date(task.dueDate);
+      return dueDate >= todayStart && dueDate < tomorrowStart;
+    });
+
+    res.json({
+      success: true,
+      studyStats: {
+        ...studyStats,
+        tasks: {
+          total: totalTasks,
+          completed: completedTasks,
+          overdue: overdueTasks,
+          inProgress: inProgressTasks,
+          completionRate: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
+        },
+        period: 'week',
+        dateRange: {
+          start: weekStart,
+          end: now
+        }
+      },
+      sessions,
+      tasks,
+      taskStats: {
+        total: totalTasks,
+        completed: completedTasks,
+        overdue: overdueTasks,
+        inProgress: inProgressTasks,
+        completionRate: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
+      },
+      flashcardStats: {
+        total: totalFlashcards,
+        dueForReview,
+        bySubject: flashcardsBySubject,
+        masteryScore,
+        recentReviews,
+        averageReviewsPerCard: totalFlashcards > 0
+          ? allFlashcards.reduce((sum, card) => sum + card.reviews.length, 0) / totalFlashcards
+          : 0
+      },
+      streak: {
+        streak: calculateStreak(streakDates),
+        hasStudiedToday: streakDates.includes(todayKey),
+        totalStudyDays: streakDates.length,
+        currentStreakStart: streakDates.length > 0 ? streakDates[0] : null,
+        longestStreak: calculateLongestStreak(streakDates),
+        dates: streakDates
+      },
+      today: {
+        date: todayStart.toISOString().split('T')[0],
+        studyTime: todaySessions.reduce((sum, session) => sum + (session.duration || 0), 0),
+        sessions: todaySessions.length,
+        tasks: {
+          total: todayTasks.length,
+          completed: todayTasks.filter(task => task.status === 'completed').length,
+          pending: todayTasks.filter(task => task.status !== 'completed').length
+        },
+        isOnTrack: todaySessions.reduce((sum, session) => sum + (session.duration || 0), 0) >= 240
+      }
+    });
+  } catch (error) {
+    console.error('Get dashboard data error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch dashboard data'
     });
   }
 };

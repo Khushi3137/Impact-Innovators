@@ -4,10 +4,7 @@ const User = require('../models/User');
 const Progress = require('../models/Progress');
 const StudySession = require('../models/StudySession');
 const { sendStudyReminder, sendWeeklyReport } = require('./emailService');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const geminiPro = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const { callGroq, hasGroqApiKey } = require('./groqClient');
 
 class Scheduler {
   constructor() {
@@ -106,9 +103,13 @@ class Scheduler {
             status: { $nin: ['completed', 'overdue'] }
           });
 
-          // Generate personalized study suggestion using Gemini
+          // Generate personalized study suggestion using AI
           let suggestion = '';
           try {
+            if (!hasGroqApiKey()) {
+              throw new Error('GROQ_API_KEY is not configured');
+            }
+
             const prompt = `
               Generate a brief, motivating daily study reminder for a college student.
               Yesterday they studied for ${Math.round(totalStudyTime / 60)} hours (goal: ${user.studyPreferences.dailyGoalHours} hours).
@@ -117,9 +118,7 @@ class Scheduler {
               Keep it encouraging and actionable (max 2 sentences).
             `;
 
-            const result = await geminiPro.generateContent(prompt);
-            const response = await result.response;
-            suggestion = response.text();
+            suggestion = await callGroq(prompt);
           } catch (aiError) {
             console.error('Error generating AI suggestion:', aiError);
             suggestion = 'Remember to focus on your studies today! You have tasks waiting for your attention.';
@@ -179,7 +178,7 @@ class Scheduler {
 
   async generateWeeklyReports() {
     try {
-      const users = await User.find({ isVerified: true });
+      const users = await User.find();
 
       for (const user of users) {
         // Calculate start and end of week
@@ -231,9 +230,8 @@ class Scheduler {
             Keep each insight to one sentence. Format as bullet points.
           `;
 
-          const result = await geminiPro.generateContent(prompt);
-          const response = await result.response;
-          insights = response.text().split('\n').filter(line => line.trim()).slice(0, 3);
+          const response = await callGroq(prompt);
+          insights = response.split('\n').filter(line => line.trim()).slice(0, 3);
         } catch (aiError) {
           console.error('Error generating insights:', aiError);
           insights = [

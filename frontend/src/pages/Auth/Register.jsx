@@ -36,7 +36,7 @@ function Register() {
     }
   };
 
-  /* ---------------- Submit (Register & Send Verification Link) ---------------- */
+  /* ---------------- Submit Registration ---------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -47,13 +47,16 @@ function Register() {
 
     setIsSubmitting(true);
     try {
-      // Assuming your backend 'register' now handles sending a verification email
       await register({ ...formData });
       
-      alert("Registration successful! Please check your email to verify your account.");
-      navigate("/login"); // Redirect to login after successful registration
+      alert("Registration successful! You can log in now.");
+      navigate("/login");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to register. Please try again.");
+      const validationMessage = err.response?.data?.errors
+        ?.map((error) => error.msg)
+        .join("\n");
+
+      alert(err.response?.data?.message || validationMessage || "Failed to register. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

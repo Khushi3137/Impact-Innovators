@@ -17,6 +17,7 @@ const geminiRoutes = require('./routes/geminiRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const studyRoutes = require('./routes/studyRoutes');
 const flashcardRoutes = require('./routes/flashcardRoutes');
+const quizRoutes = require('./routes/quizRoutes');
 const groupRoutes = require('./routes/groupRoutes');
 const resourceRoutes = require('./routes/resourceRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
@@ -68,6 +69,7 @@ app.use('/api/gemini', geminiRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/flashcards', flashcardRoutes);
+app.use('/api/quizzes', quizRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/upload', uploadRoutes);
@@ -85,6 +87,7 @@ app.get('/health', (req, res) => {
       'study',
       'gemini',
       'flashcards',
+      'quizzes',
       'calendar',
       'resources',
       'groups',

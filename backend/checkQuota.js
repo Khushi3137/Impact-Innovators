@@ -1,43 +1,42 @@
-// checkQuota.js
 require('dotenv').config();
 
-async function checkQuota() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const projectId = apiKey.split('-')[0]; // Extract project ID from key
-  
-  console.log("📊 Quota Status Check");
-  console.log("Project ID:", projectId);
-  console.log("Current time:", new Date().toLocaleTimeString());
-  
-  // Free tier typically resets at midnight UTC
-  const resetTime = new Date();
-  resetTime.setUTCHours(24, 0, 0, 0); // Next midnight UTC
-  const hoursUntilReset = (resetTime - new Date()) / (1000 * 60 * 60);
-  
-  console.log(`⏰ Quota resets in: ${hoursUntilReset.toFixed(1)} hours (midnight UTC)`);
-  
-  // Test current status
-  const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-  
+async function checkGroq() {
+  const apiKey = process.env.GROQ_API_KEY?.trim();
+
+  console.log('Groq API status check');
+  console.log('Current time:', new Date().toLocaleString());
+
+  if (!apiKey) {
+    console.log('GROQ_API_KEY is not configured in backend/.env');
+    return;
+  }
+
   try {
-    const response = await fetch(testUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: "test" }] }] })
+    const response = await fetch('https://api.groq.com/openai/v1/models', {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
     });
-    
-    if (response.status === 429) {
-      console.log("❌ QUOTA EXHAUSTED - Free tier limits reached");
-      console.log("💡 Solutions:");
-      console.log("   1. Create new Google Cloud project (fastest)");
-      console.log("   2. Wait until midnight UTC");
-      console.log("   3. Enable paid tier with budget limits");
-    } else if (response.ok) {
-      console.log("✅ Quota available!");
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      console.log(`Groq check failed with status ${response.status}`);
+      console.log(data.error?.message || data.message || 'No error details returned');
+      return;
     }
+
+    const activeModels = Array.isArray(data.data)
+      ? data.data.filter((model) => model.active !== false).map((model) => model.id)
+      : [];
+
+    console.log('Groq API key is working.');
+    console.log('Configured model:', process.env.GROQ_MODEL?.trim() || 'openai/gpt-oss-20b');
+    console.log('Available models:', activeModels.slice(0, 10).join(', ') || 'No models returned');
   } catch (error) {
-    console.log("Status check error:", error.message);
+    console.log('Status check error:', error.message);
   }
 }
 
-checkQuota();
+checkGroq();

@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const { OAuth2Client } = require('google-auth-library');
-const { sendVerificationEmail } = require('../utils/emailService');
 
 const getJwtSecret = () => {
   if (process.env.JWT_SECRET) {
@@ -67,14 +66,14 @@ exports.register = async (req, res) => {
       password,
       college,
       major,
-      year
+      year,
+      isVerified: true
     });
 
     await user.save();
 
     // Generate token
     const token = generateToken(user._id);
-    await sendVerificationEmail(user, token);
 
     res.status(201).json({
       success: true,

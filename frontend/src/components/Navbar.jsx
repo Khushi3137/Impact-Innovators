@@ -60,10 +60,11 @@ export default function Navbar() {
         <div className="hidden gap-4 text-sm font-medium md:flex">
           <NavItem to="/dashboard" label="Dashboard" />
           <NavItem to="/summarizer" label="Summarizer" />
-          <NavItem to="/flashcards" label="Flashcards" />
+          <NavItem to="/quiz-session" label="Quiz Session" />
+          <NavItem to="/doubt-solver" label="Doubt Solver" />
           <NavItem to="/study-session" label="Study Session" />
           <NavItem to="/groups" label="Study Groups" />
-          <NavItem to="/calendar" label="Calendar" />
+          <NavItem to="/momentum-planner" label="Momentum Planner" />
         </div>
 
         <div className="flex items-center gap-3">
@@ -140,10 +141,11 @@ export default function Navbar() {
         <div className="border-t border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-900 md:hidden">
           <MobileItem to="/dashboard" label="Dashboard" />
           <MobileItem to="/summarizer" label="Summarizer" />
-          <MobileItem to="/flashcards" label="Flashcards" />
+          <MobileItem to="/quiz-session" label="Quiz Session" />
+          <MobileItem to="/doubt-solver" label="Doubt Solver" />
           <MobileItem to="/study-session" label="Study Session" />
           <MobileItem to="/groups" label="Study Groups" />
-          <MobileItem to="/calendar" label="Calendar" />
+          <MobileItem to="/momentum-planner" label="Momentum Planner" />
         </div>
       )}
     </nav>
