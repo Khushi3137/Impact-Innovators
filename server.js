@@ -37,6 +37,8 @@ const io = socketIo(server, {
   }
 });
 
+app.set('io', io);
+
 /* ===================== MIDDLEWARE ===================== */
 
 app.use(cors({
@@ -94,12 +96,87 @@ app.get('/health', (req, res) => {
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
+  socket.on('join-user-room', (userId, callback) => {
+    if (!userId || typeof userId !== 'string') {
+      if (typeof callback === 'function') {
+        callback({ success: false, message: 'User ID is required' });
+      }
+      return;
+    }
+
+    const normalizedUserId = userId.trim();
+
+    if (!normalizedUserId) {
+      if (typeof callback === 'function') {
+        callback({ success: false, message: 'User ID is required' });
+      }
+      return;
+    }
+
+    const roomId = `user:${normalizedUserId}`;
+    socket.join(roomId);
+
+    if (typeof callback === 'function') {
+      callback({ success: true, roomId });
+    }
+  });
+
+  socket.on('leave-user-room', (userId) => {
+    if (!userId || typeof userId !== 'string') return;
+
+    const normalizedUserId = userId.trim();
+    if (!normalizedUserId) return;
+
+    socket.leave(`user:${normalizedUserId}`);
+  });
+
   socket.on('join-study-room', (roomId) => {
     socket.join(roomId);
     socket.to(roomId).emit('user-joined', {
       userId: socket.id,
       timestamp: new Date()
     });
+  });
+
+  socket.on('leave-study-room', (roomId) => {
+    if (roomId && typeof roomId === 'string') {
+      socket.leave(roomId.trim());
+    }
+  });
+
+  socket.on('study-room-message', ({ roomId, message, sender = 'Student' }, callback) => {
+    if (!roomId || !message || typeof roomId !== 'string' || typeof message !== 'string') {
+      if (typeof callback === 'function') {
+        callback({ success: false, message: 'Room ID and message are required' });
+      }
+      return;
+    }
+
+    const normalizedRoomId = roomId.trim();
+    const normalizedMessage = message.trim();
+
+    if (!normalizedRoomId || !normalizedMessage) {
+      if (typeof callback === 'function') {
+        callback({ success: false, message: 'Room ID and message are required' });
+      }
+      return;
+    }
+
+    const messageEvent = {
+      id: `msg-${socket.id}-${Date.now()}`,
+      roomId: normalizedRoomId,
+      userId: socket.id,
+      sender,
+      type: 'message',
+      message: normalizedMessage,
+      timestamp: new Date().toISOString()
+    };
+
+    io.to(normalizedRoomId).emit('study-room-message', messageEvent);
+
+    if (typeof callback === 'function') {
+      callback({ success: true, message: messageEvent });
+    }
   });
 
   socket.on('study-session-update', ({ roomId, sessionData }) => {

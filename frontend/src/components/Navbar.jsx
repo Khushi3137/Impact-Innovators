@@ -62,6 +62,7 @@ export default function Navbar() {
           <NavItem to="/summarizer" label="Summarizer" />
           <NavItem to="/quiz-session" label="Quiz Session" />
           <NavItem to="/doubt-solver" label="Doubt Solver" />
+          <NavItem to="/references" label="References" />
           <NavItem to="/study-session" label="Study Session" />
           <NavItem to="/groups" label="Study Groups" />
           <NavItem to="/momentum-planner" label="Momentum Planner" />
@@ -143,6 +144,7 @@ export default function Navbar() {
           <MobileItem to="/summarizer" label="Summarizer" />
           <MobileItem to="/quiz-session" label="Quiz Session" />
           <MobileItem to="/doubt-solver" label="Doubt Solver" />
+          <MobileItem to="/references" label="References" />
           <MobileItem to="/study-session" label="Study Session" />
           <MobileItem to="/groups" label="Study Groups" />
           <MobileItem to="/momentum-planner" label="Momentum Planner" />

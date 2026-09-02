@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Summarizer from "./pages/Summarizer";
 import QuizSession from "./pages/QuizSession";
 import DoubtSolver from "./pages/DoubtSolver";
+import References from "./pages/References";
 import StudySession from "./pages/StudySession";
 import Groups from "./pages/Groups";
 import Calendar from "./pages/Calendar";
@@ -42,6 +43,7 @@ function App() {
               <Route path="summarizer" element={<Summarizer />} />
               <Route path="quiz-session" element={<QuizSession />} />
               <Route path="doubt-solver" element={<DoubtSolver />} />
+              <Route path="references" element={<References />} />
               <Route path="flashcards" element={<Navigate to="/quiz-session" replace />} />
               <Route path="study-session" element={<StudySession />} />
               <Route path="groups" element={<Groups />} />

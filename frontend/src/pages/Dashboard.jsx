@@ -14,7 +14,9 @@ import {
 import {
   getDashboardData,
 } from "../api/studyApi";
+import { AuthContext } from "../context/authContextValue";
 import { ThemeContext } from "../context/themeContextValue";
+import { socket } from "../sockets/socket";
 
 const CALENDAR_STORAGE_KEY = "study-calendar-events";
 const POLL_MS = 10000;
@@ -112,6 +114,7 @@ const buildSubjectRows = (bySubject = {}, sessions = []) => {
 
 export default function Dashboard() {
   const { dark } = useContext(ThemeContext);
+  const { user } = useContext(AuthContext);
   const [dashboard, setDashboard] = useState({
     studyStats: {},
     sessions: [],
@@ -187,6 +190,39 @@ export default function Dashboard() {
       window.removeEventListener("storage", handleStorage);
     };
   }, [loadDashboard]);
+
+  useEffect(() => {
+    const userId = user?._id?.toString();
+
+    if (!userId) return undefined;
+
+    const handleDashboardRefresh = () => loadDashboard({ silent: true });
+
+    const joinUserRoom = () => {
+      socket.timeout(5000).emit("join-user-room", userId, (error, response) => {
+        if (error || !response?.success) {
+          return;
+        }
+      });
+    };
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    socket.on("connect", joinUserRoom);
+    socket.on("dashboard-data-updated", handleDashboardRefresh);
+
+    if (socket.connected) {
+      joinUserRoom();
+    }
+
+    return () => {
+      socket.emit("leave-user-room", userId);
+      socket.off("connect", joinUserRoom);
+      socket.off("dashboard-data-updated", handleDashboardRefresh);
+    };
+  }, [loadDashboard, user?._id]);
 
   const weekData = useMemo(() => {
     const rows = makeEmptyWeek();

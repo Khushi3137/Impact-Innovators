@@ -1,6 +1,13 @@
 const StudyGroup = require('../models/StudyGroup');
 const User = require('../models/User');
 
+const emitGroupMessage = (req, groupId, message) => {
+  const io = req.app?.get?.('io');
+  if (!io || !groupId || !message) return;
+
+  io.to(groupId.toString()).emit('study-room-message', message);
+};
+
 exports.createGroup = async (req, res) => {
   try {
     const { name, description, subject, isPublic, maxMembers } = req.body;
@@ -887,6 +894,7 @@ exports.sendMessage = async (req, res) => {
   try {
     const { groupId } = req.params;
     const { message, type = 'text' } = req.body;
+    const normalizedMessage = String(message || '').trim();
     
     const group = await StudyGroup.findById(groupId);
     
@@ -909,20 +917,17 @@ exports.sendMessage = async (req, res) => {
       });
     }
     
-    // In a real app, you would save to a Message model and use Socket.io
-    // For now, return a demo response
-    
     const newMessage = {
-      id: 'msg-' + Date.now(),
+      id: `msg-${req.userId}-${Date.now()}`,
       userId: req.userId,
-      message,
+      sender: req.user.name || req.user.email || 'Student',
+      message: normalizedMessage,
       type,
       timestamp: new Date(),
       groupId
     };
-    
-    // TODO: Emit socket event for real-time messaging
-    // io.to(groupId).emit('new_message', newMessage);
+
+    emitGroupMessage(req, groupId, newMessage);
     
     res.json({
       success: true,

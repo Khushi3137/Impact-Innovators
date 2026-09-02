@@ -2,6 +2,18 @@ const StudySession = require('../models/StudySession');
 const Task = require('../models/Task');
 const Progress = require('../models/Progress');
 
+const emitDashboardRefresh = (req, reason) => {
+  const io = req.app?.get?.('io');
+
+  if (!io || !req.userId) return;
+
+  io.to(`user:${req.userId.toString()}`).emit('dashboard-data-updated', {
+    userId: req.userId.toString(),
+    reason,
+    timestamp: new Date().toISOString()
+  });
+};
+
 exports.startStudySession = async (req, res) => {
   try {
     const { subject, topic, goals } = req.body;
@@ -15,6 +27,8 @@ exports.startStudySession = async (req, res) => {
     });
     
     await session.save();
+
+    emitDashboardRefresh(req, 'study-session-started');
     
     res.json({
       success: true,
@@ -60,6 +74,7 @@ exports.endStudySession = async (req, res) => {
     
     // Update progress
     await updateDailyProgress(req.userId, session.subject, duration);
+    emitDashboardRefresh(req, 'study-session-ended');
     
     res.json({
       success: true,
@@ -120,6 +135,8 @@ exports.createTask = async (req, res) => {
     
     const task = new Task(taskData);
     await task.save();
+
+    emitDashboardRefresh(req, 'task-created');
     
     res.status(201).json({
       success: true,
@@ -158,6 +175,8 @@ exports.updateTask = async (req, res) => {
       task.completedAt = new Date();
       await task.save();
     }
+
+    emitDashboardRefresh(req, 'task-updated');
     
     res.json({
       success: true,
@@ -490,6 +509,8 @@ exports.deleteTask = async (req, res) => {
       message: 'Task deleted successfully',
       taskId
     });
+
+    emitDashboardRefresh(req, 'task-deleted');
   } catch (error) {
     console.error('Delete task error:', error);
     res.status(500).json({
@@ -618,6 +639,8 @@ exports.startPomodoro = async (req, res) => {
       message: `Pomodoro session started for ${duration} minutes`,
       endTime: new Date(Date.now() + duration * 60 * 1000)
     });
+
+    emitDashboardRefresh(req, 'pomodoro-started');
   } catch (error) {
     console.error('Start pomodoro error:', error);
     res.status(500).json({
@@ -645,6 +668,8 @@ exports.endPomodoro = async (req, res) => {
       },
       message: `Pomodoro session ${completed ? 'completed' : 'cancelled'}`
     });
+
+    emitDashboardRefresh(req, 'pomodoro-ended');
   } catch (error) {
     console.error('End pomodoro error:', error);
     res.status(500).json({
