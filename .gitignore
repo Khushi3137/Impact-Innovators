@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+.env.production
+logs/
+dist/
+temp/
+test-outputs/
+google-credentials.json
+uploads/
+*.mp4
+*.jpg
