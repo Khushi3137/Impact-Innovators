@@ -283,7 +283,7 @@ async processPDF(buffer, fileName, prompt) {
       if (audio && audio.path) {
         try {
           const audioBuffer = await fs.readFile(audio.path);
-          transcription = await audioProcessor.transcribeAudio(audioBuffer, 'audio/mp3');
+          transcription = await audioProcessor.transcribeAudio(audioBuffer, 'audio/mp3', `${path.parse(fileName).name}.mp3`);
         } catch (transcribeError) {
           console.warn('Audio transcription failed:', transcribeError.message);
         }
@@ -322,7 +322,7 @@ async processPDF(buffer, fileName, prompt) {
       const waveform = await audioProcessor.createWaveform(tempPath);
       
       // Transcribe
-      const transcription = await audioProcessor.transcribeAudio(buffer, mimeType);
+      const transcription = await audioProcessor.transcribeAudio(buffer, mimeType, fileName);
       
       // Analyze content
       const analysis = await audioProcessor.analyzeAudio(buffer, mimeType, prompt);
@@ -499,8 +499,12 @@ ${content.substring(0, 5000)}
 
   async generateVideoAnalysis(videoInfo, frames, transcription, prompt) {
     try {
+      if (!transcription?.success || !transcription.text?.trim()) {
+        return 'A reliable video summary could not be generated because no verified speech transcription was available. Make sure the video contains clear audio and GROQ_API_KEY is configured.';
+      }
+
       const frameText = frames.map(f => `At ${f.timestamp}s: ${f.analysis}`).join('\n');
-      const transText = transcription?.text || 'No transcription available';
+      const transText = transcription?.text || 'No verified speech transcription is available.';
       
       const analysisPrompt = `
         Video Analysis Request: ${prompt || "Analyze this video"}
@@ -516,6 +520,8 @@ ${content.substring(0, 5000)}
         Audio Transcription:
         ${transText.substring(0, 2000)}
         
+        Use only the verified transcription and frame details above. Do not guess or invent topics that are not supported by them.
+
         Provide a comprehensive analysis including:
         1. Main topics covered
         2. Key concepts explained

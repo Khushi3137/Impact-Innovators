@@ -12,9 +12,7 @@ export const summarizeFile = async ({ file, prompt, subject }) => {
   if (prompt) formData.append("prompt", prompt);
   if (subject) formData.append("subject", subject);
 
-  const res = await api.post("/gemini/process-file", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const res = await api.post("/gemini/process-file", formData);
 
   return res.data;
 };

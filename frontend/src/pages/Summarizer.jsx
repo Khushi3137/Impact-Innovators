@@ -11,6 +11,62 @@ const getErrorMessage = (error) =>
     ? "Cannot reach the backend server. Start it from the backend folder."
     : "Unable to generate summary.");
 
+function renderInline(text) {
+  return text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={index} className="font-bold text-gray-950 dark:text-white">{part.slice(2, -2)}</strong>;
+    }
+
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return <code key={index} className="rounded bg-gray-200 px-1.5 py-0.5 text-[0.9em] text-indigo-700 dark:bg-gray-800 dark:text-indigo-300">{part.slice(1, -1)}</code>;
+    }
+
+    return <span key={index}>{part}</span>;
+  });
+}
+
+function SummaryContent({ content }) {
+  const lines = content.split(/\r?\n/);
+
+  return (
+    <article className="space-y-3 text-sm leading-7 text-gray-700 dark:text-gray-200">
+      {lines.map((line, index) => {
+        const trimmedLine = line.trim();
+
+        if (!trimmedLine) return <div key={index} className="h-1" aria-hidden="true" />;
+        if (/^-{3,}$/.test(trimmedLine)) return <hr key={index} className="my-6 border-gray-200 dark:border-gray-700" />;
+
+        const heading = trimmedLine.match(/^#{1,3}\s+(.+)$/);
+        if (heading) {
+          return <h2 key={index} className="pt-2 text-xl font-bold text-gray-950 dark:text-white">{renderInline(heading[1])}</h2>;
+        }
+
+        const orderedItem = trimmedLine.match(/^\d+\.\s+(.+)$/);
+        if (orderedItem) {
+          return (
+            <div key={index} className="flex gap-3 rounded-lg bg-white px-3 py-2 dark:bg-gray-800/70">
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">{trimmedLine.match(/^\d+/)[0]}.</span>
+              <span>{renderInline(orderedItem[1])}</span>
+            </div>
+          );
+        }
+
+        const bulletItem = trimmedLine.match(/^[-*]\s+(.+)$/);
+        if (bulletItem) {
+          return (
+            <div key={index} className="flex gap-3 px-2">
+              <span className="text-indigo-600 dark:text-indigo-400">•</span>
+              <span>{renderInline(bulletItem[1])}</span>
+            </div>
+          );
+        }
+
+        return <p key={index}>{renderInline(trimmedLine)}</p>;
+      })}
+    </article>
+  );
+}
+
 export default function Summarizer() {
   const { user } = useContext(AuthContext);
   const [file, setFile] = useState(null);
@@ -121,7 +177,7 @@ export default function Summarizer() {
       <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-400 transition-all bg-gray-50/50 dark:bg-gray-900/30">
         <input
           type="file"
-          accept=".pdf,.doc,.docx,.txt,.md,.csv,.mp3,.wav,.ogg,.m4a,.mp4,.mkv,.avi,.mov,.webm,application/pdf,application/x-pdf"
+          accept=".pdf,.doc,.docx,.txt,.md,.csv,.mp3,.wav,.ogg,.m4a,.aac,.flac,.mp4,.mkv,.avi,.mov,.webm,.flv,.wmv,application/pdf,application/x-pdf,audio/*,video/*"
           className="hidden"
           onChange={(e) => {
             const nextFile = e.target.files[0] || null;
@@ -185,9 +241,7 @@ export default function Summarizer() {
 
       <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
         {summary ? (
-          <p className="whitespace-pre-wrap text-sm leading-6 text-gray-800 dark:text-gray-100">
-            {summary}
-          </p>
+          <SummaryContent content={summary} />
         ) : (
           <p className="text-sm text-gray-500 dark:text-gray-400">
             AI-generated study notes will appear here...

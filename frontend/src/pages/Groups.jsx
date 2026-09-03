@@ -82,14 +82,16 @@ function GroupCard({ group, active, onOpen, onJoin, onLeave, busy, discover = fa
       <div className="flex items-start justify-between gap-3">
         <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
           <h3 className="truncate font-semibold text-gray-950 dark:text-white">{group.name}</h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{getCreatorName(group)}</p>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            {group.subject || "General"} | {getMemberCount(group)} member{getMemberCount(group) === 1 ? "" : "s"}
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{group.subject || "General"}</p>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            {getMemberCount(group)} member{getMemberCount(group) === 1 ? "" : "s"} · Led by {getCreatorName(group)}
           </p>
         </button>
-        <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:ring-gray-800">
-          {discover ? (group.viewerStatus === "requested" ? "Requested" : "Public") : "My Group"}
-        </span>
+        {(!discover || group.viewerStatus !== "requested") && (
+          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:ring-gray-800">
+            {discover ? "Public" : "My Group"}
+          </span>
+        )}
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -113,9 +115,10 @@ function GroupCard({ group, active, onOpen, onJoin, onLeave, busy, discover = fa
           <button
             type="button"
             onClick={onLeave}
+            disabled={busy}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 dark:border-gray-700 dark:text-gray-200 dark:hover:border-rose-700 dark:hover:bg-rose-950/40"
           >
-            Leave
+            {busy ? "Working..." : "Leave"}
           </button>
         )}
       </div>
@@ -145,6 +148,8 @@ export default function Groups() {
   const [groupName, setGroupName] = useState("");
   const [groupSubject, setGroupSubject] = useState("General");
   const [groupDescription, setGroupDescription] = useState("");
+  const [groupSearch, setGroupSearch] = useState("");
+  const [groupView, setGroupView] = useState("mine");
   const [isPublic, setIsPublic] = useState(false);
   const [myGroups, setMyGroups] = useState([]);
   const [discoverGroups, setDiscoverGroups] = useState([]);
@@ -161,6 +166,16 @@ export default function Groups() {
   const messagesEndRef = useRef(null);
 
   const myGroupIds = useMemo(() => new Set(myGroups.map((group) => group._id)), [myGroups]);
+
+  const normalizedSearch = groupSearch.trim().toLowerCase();
+  const filteredMyGroups = useMemo(
+    () => myGroups.filter((group) => `${group.name} ${group.subject || ""}`.toLowerCase().includes(normalizedSearch)),
+    [myGroups, normalizedSearch]
+  );
+  const filteredDiscoverGroups = useMemo(
+    () => discoverGroups.filter((group) => `${group.name} ${group.subject || ""}`.toLowerCase().includes(normalizedSearch)),
+    [discoverGroups, normalizedSearch]
+  );
 
   const loadLists = useCallback(async () => {
     setLoading(true);
@@ -357,15 +372,15 @@ export default function Groups() {
     }
   };
 
-  const handleLeaveGroup = async () => {
-    if (!activeGroup?._id) return;
+  const handleLeaveGroup = async (groupId = activeGroup?._id) => {
+    if (!groupId) return;
 
     setBusy(true);
     setStatus("Leaving group...");
 
     try {
-      await leaveGroup(activeGroup._id);
-      closeActiveRoom();
+      await leaveGroup(groupId);
+      if (groupId === activeGroup?._id) closeActiveRoom();
       await loadLists();
       setStatus("Left the group");
     } catch (error) {
@@ -408,16 +423,16 @@ export default function Groups() {
   const activeMyGroup = activeGroup && myGroupIds.has(activeGroup._id);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-5 px-1">
+    <div className="mx-auto min-h-full w-full max-w-7xl space-y-5 rounded-3xl bg-gray-100 px-1 pb-8 dark:bg-[#0b1220]">
       <section className="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
               Study Groups
             </p>
-            <h1 className="mt-1 text-3xl font-bold text-gray-950 dark:text-white">Small group study, kept simple</h1>
+            <h1 className="mt-1 text-3xl font-bold text-gray-950 dark:text-white">Find your study circle</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-300">
-              Create a group, join one, and chat live without the extra clutter.
+              Create a space for your next study session or join classmates who are already learning together.
             </p>
           </div>
 
@@ -433,6 +448,17 @@ export default function Groups() {
             {status}
           </p>
         )}
+
+        <label className="relative mt-4 block max-w-xl">
+          <span className="sr-only">Search study groups</span>
+          <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-400">⌕</span>
+          <input
+            value={groupSearch}
+            onChange={(event) => setGroupSearch(event.target.value)}
+            placeholder="Search your groups and public groups"
+            className="w-full rounded-xl border border-gray-300 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:focus:bg-gray-900"
+          />
+        </label>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
@@ -534,66 +560,72 @@ export default function Groups() {
           </section>
         </div>
 
-        <div className="space-y-5">
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold text-gray-950 dark:text-white">My Groups</h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Tap a card to open or close the room.</p>
-              </div>
-              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                {myGroups.length}
-              </span>
+        <section className="min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+          <div className="flex flex-col gap-4 border-b border-gray-200 pb-4 dark:border-gray-800 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Your workspace</p>
+              <h2 className="mt-1 text-xl font-bold text-gray-950 dark:text-white">Study groups</h2>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {groupView === "mine" ? "Open a group to study together." : "Find a public group and request access."}
+              </p>
             </div>
+            <div className="flex rounded-xl bg-gray-100 p-1 dark:bg-gray-950" role="tablist" aria-label="Group views">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={groupView === "mine"}
+                onClick={() => setGroupView("mine")}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${groupView === "mine" ? "bg-white text-indigo-700 shadow-sm dark:bg-gray-800 dark:text-indigo-300" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
+              >
+                My groups <span className="ml-1 text-xs">{myGroups.length}</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={groupView === "discover"}
+                onClick={() => setGroupView("discover")}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${groupView === "discover" ? "bg-white text-indigo-700 shadow-sm dark:bg-gray-800 dark:text-indigo-300" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
+              >
+                Discover <span className="ml-1 text-xs">{discoverGroups.length}</span>
+              </button>
+            </div>
+          </div>
 
-            <div className="mt-4 space-y-3">
-              {myGroups.length ? (
-                myGroups.map((group) => (
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {loading ? (
+              <EmptyState text={groupView === "mine" ? "Loading your groups..." : "Finding public groups..."} />
+            ) : groupView === "mine" ? (
+              filteredMyGroups.length ? (
+                filteredMyGroups.map((group) => (
                   <GroupCard
                     key={group._id}
                     group={group}
                     active={activeRoom === group._id}
                     onOpen={() => openGroup(group)}
-                    onLeave={handleLeaveGroup}
+                    onLeave={() => handleLeaveGroup(group._id)}
                     busy={busy}
                   />
                 ))
               ) : (
-                <EmptyState text={loading ? "Loading your groups..." : "Create a group or accept an invite to get started."} />
-              )}
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold text-gray-950 dark:text-white">Discover</h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Public groups you can request access to.</p>
-              </div>
-              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                {discoverGroups.length}
-              </span>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              {discoverGroups.length ? (
-                discoverGroups.map((group) => (
-                  <GroupCard
-                    key={group._id}
-                    group={group}
-                    active={activeRoom === group._id}
-                    onOpen={() => openGroup(group)}
-                    onJoin={() => handleJoinGroup(group._id)}
-                    busy={busy}
-                    discover
-                  />
-                ))
-              ) : (
-                <EmptyState text="No public groups available right now." />
-              )}
-            </div>
-          </section>
-        </div>
+                <EmptyState text={normalizedSearch ? "No groups match your search." : "Create a group or accept an invite to get started."} />
+              )
+            ) : filteredDiscoverGroups.length ? (
+              filteredDiscoverGroups.map((group) => (
+                <GroupCard
+                  key={group._id}
+                  group={group}
+                  active={activeRoom === group._id}
+                  onOpen={() => openGroup(group)}
+                  onJoin={() => handleJoinGroup(group._id)}
+                  busy={busy}
+                  discover
+                />
+              ))
+            ) : (
+              <EmptyState text={normalizedSearch ? "No public groups match your search." : "No public groups available right now."} />
+            )}
+          </div>
+        </section>
       </section>
 
       <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">

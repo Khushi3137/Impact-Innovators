@@ -1,6 +1,11 @@
 const ffmpeg = require('fluent-ffmpeg');
+const ffmpegPath = require('ffmpeg-static');
+const ffprobePath = require('ffprobe-static').path;
 const fs = require('fs').promises;
 const path = require('path');
+
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 
 class AudioProcessor {
   constructor() {
@@ -81,12 +86,50 @@ class AudioProcessor {
     });
   }
 
-  async transcribeAudio() {
-    return {
-      text: 'Transcription not available with the current Groq text model.',
-      success: false,
-      method: 'fallback'
-    };
+  async transcribeAudio(audioBuffer, mimeType = 'audio/mpeg', fileName = 'audio.mp3') {
+    const apiKey = process.env.GROQ_API_KEY?.trim();
+
+    if (!apiKey) {
+      return {
+        text: '',
+        success: false,
+        method: 'fallback',
+        error: 'GROQ_API_KEY is not configured for audio transcription.'
+      };
+    }
+
+    try {
+      const { default: fetch, FormData, Blob } = await import('node-fetch');
+      const formData = new FormData();
+      formData.append('file', new Blob([audioBuffer], { type: mimeType }), fileName);
+      formData.append('model', process.env.GROQ_TRANSCRIPTION_MODEL?.trim() || 'whisper-large-v3-turbo');
+      formData.append('response_format', 'json');
+
+      const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}` },
+        body: formData
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || `Transcription failed with status ${response.status}`);
+      }
+
+      return {
+        text: data.text || '',
+        success: Boolean(data.text?.trim()),
+        method: 'groq-whisper'
+      };
+    } catch (error) {
+      console.error('Audio transcription error:', error.message);
+      return {
+        text: '',
+        success: false,
+        method: 'fallback',
+        error: error.message
+      };
+    }
   }
 
   // Analyze audio content with AI
